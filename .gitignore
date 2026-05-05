@@ -1,0 +1,138 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Data and results
+data/*/X.csv
+data/*/y.csv
+results/
+figures/
+*.csv
+*.json
+*.pkl
+*.pickle
+
+# Large files
+*.tar.gz
+*.zip
+*.tar
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# pyenv
+.python-version
+
+# Environments
+.env
+.env.local
+
+# Old/legacy files (not part of restructured codebase)
+*.xlsx
+cpi_demo_no_nncde.py
+cpi_mc_setup0c1.py
+main_simplified.py
+new.py
+try.py
+download_datasets.py
+test*.py
+deeponetRan3.ipynb
+
+# LaTeX / paper files (kept separately)
+*.tex
+*.bib
+*.pdf
+appendix_*.tex
+section_*.tex
+
+# Simulation output directories
+0a/
+0as_*/
+0c1/
+0c1s*/
+figures/
+figures_new/
+pc1_group_outputs*/
+
+# Dataset directories (download separately)
+Airfoil/
+Computer/
+Abalone/
+concrete/
+AutoMPG/
+Crime/
+CA housing/
+Debutanizer/
+energy/
+Insurance/
+Kin8nm/
+Miami/
+Parkinsons/
+Powerplant/
+protein/
+qsar/
+superconductor/
+new_datasets/
+bench_data/
+citation/
+
+# Restructuring artifacts
+RESTRUCTURING_SUMMARY.txt

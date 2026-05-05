@@ -1,0 +1,60 @@
+alpha: 0.10
+
+data:
+  test_frac: 0.20
+  cal_frac: 0.35
+
+seeds:
+  - 777
+  - 778
+  - 779
+  - 780
+  - 781
+  - 782
+  - 783
+  - 784
+  - 785
+  - 786
+
+hazard:
+  hidden: 64
+  epochs: 500
+  patience: 30
+  batch: 128
+  lr: 1e-3
+  ensemble_k: 15
+  ensemble_topk: 5
+  max_grid: 1024
+  clamp_eta: 10.0
+  use_xgb_meta: true
+  use_time_reparam: true
+  timegrid_mode: "coarse"
+  verbose_selection: true
+
+baselines:
+  hidden: 48
+  epochs: 200
+  patience: 20
+  batch: 128
+  lr: 1e-3
+  weight_decay: 0.0
+  clamp_logvar: false
+  rescaled_sigma_min: 1e-8
+  rescaled_sigma_max: 10.0
+  std_eps: 1e-8
+
+feature_selection:
+  method: "stability_lgbm"
+  bootstraps: 50
+  subsample: 0.7
+  freq_thr: 0.6
+  max_features: null
+  enabled: true
+
+z_grid:
+  size: 41
+  eps_u: 1e-6
+
+pc1_groups: 4
+
+device: "auto"

@@ -1,0 +1,37 @@
+alpha: 0.10
+
+data:
+  n_train: 3000
+  n_cal: 500
+  n_test: 200
+  n_rep: 3000
+
+setups:
+  - "0a"
+  - "0c1"
+
+baseline_strength: "medium"
+baseline_config:
+  hidden: 32
+  epochs: 180
+  patience: 10
+  val_frac: 0.3
+  batch: 256
+  lr: 1e-3
+  weight_decay: 0.0
+  clamp_logvar: false
+  cqr_hidden: 16
+
+hazard:
+  hidden: 64
+  epochs: 500
+  patience: 40
+  batch: 256
+  lr: 5e-4
+
+z_grid:
+  size: 41
+  eps_u: 1e-6
+
+device: "auto"
+seed: 0
