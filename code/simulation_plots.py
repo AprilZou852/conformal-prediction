@@ -198,7 +198,7 @@ def build_style_map(methods):
     - NNCDE methods get solid lines, others get dashed lines
     - then marker changes
     """
-    # Custom palette matching the user's requested "premium/ICML" look
+    # Custom palette matching the user's requested premium publication look
     custom_colors = ["#EE9B00", "#AE615C", "#6D84AB", "#709E5B", "#8A8A8A", "#D4AF37", "#6C5B7B"]
 
     colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])

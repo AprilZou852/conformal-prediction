@@ -4,7 +4,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.10+-ee4c2c.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Official implementation of **CPI (Conformalized Percentile Interval)** for the ICML 2025 paper "Conformalized Percentile Interval: Finite Sample Validity and Improved Conditional Performance".
+Official implementation of **CPI (Conformalized Percentile Interval)** for the paper "Conformalized Percentile Interval: Finite Sample Validity and Improved Conditional Performance".
 
 ## Abstract
 
@@ -206,10 +206,9 @@ On 6 real datasets (Airfoil, Computer, Abalone, Concrete, AutoMPG, Crime):
 ## Citation
 
 ```bibtex
-@inproceedings{zou2025cpi,
+@article{zou2025cpi,
   title={Conformalized Percentile Interval: Finite Sample Validity and Improved Conditional Performance},
   author={Zou, April},
-  booktitle={International Conference on Machine Learning (ICML)},
   year={2025}
 }
 ```
