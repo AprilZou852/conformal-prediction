@@ -13,7 +13,6 @@ Create subdirectories for each dataset and download `X.csv` and `y.csv` files:
 ```bash
 mkdir -p data/Airfoil
 mkdir -p data/Computer
-mkdir -p data/Abalone
 mkdir -p data/Concrete
 mkdir -p data/AutoMPG
 mkdir -p data/Crime
@@ -35,25 +34,19 @@ wget https://archive.ics.uci.edu/ml/machine-learning-databases/00291/airfoil_sel
 - **Target**: Published relative performance
 - **Samples**: 209
 
-#### 3. Abalone
-- **Source**: UCI ML Repository (https://archive.ics.uci.edu/ml/datasets/Abalone)
-- **Features**: 8 (sex, length, diameter, height, whole weight, shucked weight, viscera weight, shell weight)
-- **Target**: Rings (age proxy)
-- **Samples**: 4,177
-
-#### 4. Concrete Compressive Strength
+#### 3. Concrete Compressive Strength
 - **Source**: UCI ML Repository (https://archive.ics.uci.edu/ml/datasets/Concrete+Compressive+Strength)
 - **Features**: 8 (cement, blast furnace slag, fly ash, water, superplasticizer, coarse aggregate, fine aggregate, age)
 - **Target**: Compressive strength
 - **Samples**: 1,030
 
-#### 5. Auto MPG
+#### 4. Auto MPG
 - **Source**: UCI ML Repository (https://archive.ics.uci.edu/ml/datasets/Auto+MPG)
 - **Features**: 7 (cylinders, displacement, horsepower, weight, acceleration, model year, origin)
 - **Target**: Miles per gallon
 - **Samples**: 398
 
-#### 6. Communities and Crime
+#### 5. Communities and Crime
 - **Source**: UCI ML Repository (https://archive.ics.uci.edu/ml/datasets/Communities+and+Crime)
 - **Features**: Selected socioeconomic and crime statistics
 - **Target**: Per capita violent crime rate

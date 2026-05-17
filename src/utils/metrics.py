@@ -4,6 +4,12 @@ from typing import Tuple, Optional
 import numpy as np
 from sklearn.decomposition import PCA
 
+try:
+    from covmetrics import ERT
+    _HAS_COVMETRICS = True
+except ImportError:
+    _HAS_COVMETRICS = False
+
 
 def compute_coverage(y_test: np.ndarray, lo: np.ndarray, hi: np.ndarray) -> float:
     """
@@ -67,6 +73,38 @@ def compute_worst_bin_coverage(coverages: np.ndarray) -> float:
         Minimum coverage rate among all groups.
     """
     return float(np.min(coverages))
+
+
+def compute_l1_ert(
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+    lo: np.ndarray,
+    hi: np.ndarray,
+    alpha: float = 0.10,
+) -> float:
+    """
+    Compute L1-ERT metric for conditional coverage evaluation.
+
+    Estimates E[ | P(Y in C(X) | X) - (1-alpha) | ] using the ERT
+    (Estimated Risk of the Threshold) approach from Angelopoulos et al.
+    (arXiv:2512.11779). Lower values indicate better conditional coverage.
+
+    Requires the `covmetrics` package: pip install covmetrics.
+
+    Args:
+        X_test: Test features, shape (n, p).
+        y_test: Test targets, shape (n,).
+        lo: Lower bounds of prediction intervals, shape (n,).
+        hi: Upper bounds, shape (n,).
+        alpha: Nominal miscoverage level (default: 0.10).
+
+    Returns:
+        L1-ERT value (float). Returns NaN if covmetrics is not installed.
+    """
+    if not _HAS_COVMETRICS:
+        return float("nan")
+    cover = ((y_test >= lo) & (y_test <= hi)).astype(float)
+    return float(ERT().evaluate(X_test, cover, alpha))
 
 
 def compute_pc1_groups(

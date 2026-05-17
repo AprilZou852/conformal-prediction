@@ -16,7 +16,7 @@ Prediction intervals are crucial for uncertainty quantification in regression. W
 - **Improved conditional coverage**: Empirically superior to Residual, Rescaled, and CQR baselines
 - **Shortest-width intervals**: Optimal width selection via grid search over PIT quantiles
 - **Hazard-based density estimation**: Efficient continuous density modeling using neural network conditional density estimation
-- **Comprehensive evaluation**: Tested on 6 real datasets with PC1-based conditional grouping
+- **Comprehensive evaluation**: Tested on 5 real datasets with PC1-based conditional grouping
 
 ## Installation
 
@@ -114,7 +114,6 @@ conformal-prediction/
 ├── data/                         # Benchmark datasets (see data/README.md)
 │   ├── Airfoil/
 │   ├── Computer/
-│   ├── Abalone/
 │   ├── Concrete/
 │   ├── AutoMPG/
 │   └── Crime/
@@ -144,7 +143,7 @@ Output: `results/simulation/simulation_results_*.csv`, `figures/plot_*.png`
 First, download datasets from UCI ML Repository (see `data/README.md`). Then:
 
 ```bash
-for dataset in Airfoil Computer Abalone Concrete AutoMPG Crime; do
+for dataset in Airfoil Computer Concrete AutoMPG Crime; do
     python scripts/run_realdata.py \
         --config configs/realdata.yaml \
         --x-path data/${dataset}/X.csv \
@@ -197,9 +196,9 @@ python scripts/plot_results.py --type conditional --input-dir results --output-d
 
 ## Key Results
 
-On 6 real datasets (Airfoil, Computer, Abalone, Concrete, AutoMPG, Crime):
+On 5 real datasets (Airfoil, Computer, Concrete, AutoMPG, Crime):
 
-- CPI achieves **1.3-2.1× narrower intervals** than Residual while maintaining coverage
+- CPI achieves **1.1-1.8× narrower intervals** than Residual while maintaining coverage
 - CPI improves **conditional coverage** (PC1-grouped) compared to CQR
 - All methods satisfy **marginal coverage guarantees** by design
 

@@ -62,13 +62,19 @@ env/
 # Data and results
 data/*/X.csv
 data/*/y.csv
-results/
+data/*/airfoil*.dat
 figures/
-*.csv
 *.json
 *.pkl
 *.pickle
 *.png
+
+# Root-level CSV (old runs, not needed)
+/*.csv
+
+# Allow results CSV to be tracked
+!results/
+!results/**/*.csv
 
 # Large files
 *.tar.gz
@@ -122,7 +128,6 @@ pc1_group_outputs*/
 # Dataset directories (download separately)
 Airfoil/
 Computer/
-Abalone/
 concrete/
 AutoMPG/
 Crime/
@@ -143,3 +148,13 @@ citation/
 
 # Restructuring artifacts
 RESTRUCTURING_SUMMARY.txt
+
+# Old zip extracts and temp scripts
+conformal-prediction-main/
+prepare_and_run.sh
+run_all_realdata.sh
+run_all_nopcs.sh
+collect_width_table.py
+full_run.log
+.Rhistory
+Abalone/

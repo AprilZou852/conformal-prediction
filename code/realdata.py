@@ -45,6 +45,13 @@ import torch.optim as optim
 from sklearn.model_selection import train_test_split
 from torch.utils.data import TensorDataset, DataLoader, random_split
 
+# ========= L1-ERT conditional coverage metric =========
+try:
+    from covmetrics import ERT
+    _HAS_COVMETRICS = True
+except ImportError:
+    _HAS_COVMETRICS = False
+
 # ========= 变量选择依赖 =========
 from sklearn.linear_model import ElasticNetCV, LassoCV
 from sklearn.preprocessing import StandardScaler
@@ -88,8 +95,8 @@ RUN_TRAINING = True
 EXISTING_CSV_PATH = "./summary_seeds_777_786_with_hazard_grid_fs_stability_lgbm_PCA_GROUPS.csv"
 
 # ========== PCS-UQ integration ==========
-ENABLE_PCS_UQ = True
-USE_PCS_TEST_SPLIT = True
+ENABLE_PCS_UQ = False
+USE_PCS_TEST_SPLIT = False
 
 PCS_UQ_PATHS = {
     777: "pcs_uq_seed_777_train_size_0.8_preds.csv",
@@ -186,7 +193,6 @@ METHOD_ORDER_FINAL = [
     M_RESIDUAL,
     M_RESCALED,
     M_CQR,
-    M_PCS,
     M_CPI,
     M_DCP,
 ]
@@ -362,7 +368,14 @@ def get_forced_test_indices_from_pcs(
         print(msg + " -> fall back to sklearn train_test_split.")
         return None
 
-    pcs_df = load_pcs_uq_predictions(pcs_paths[seed])
+    pcs_file = pcs_paths[seed]
+    if not os.path.exists(pcs_file):
+        msg = f"[PCS_TEST_SPLIT] seed={seed}: PCS file not found on disk: {pcs_file}"
+        if require_all:
+            raise FileNotFoundError(msg)
+        print(msg + " -> fall back to sklearn train_test_split.")
+        return None
+    pcs_df = load_pcs_uq_predictions(pcs_file)
     base = infer_test_index_base(pcs_df, y_all)
     idx0 = (pcs_df["test_index"].values.astype(int) - base).astype(int)
 
@@ -411,6 +424,12 @@ def get_pcs_intervals_for_seed(
         return None, None
 
     pcs_path = pcs_paths[seed]
+    if not os.path.exists(pcs_path):
+        msg = f"[PCS_UQ] seed={seed}: PCS file not found on disk: {pcs_path}"
+        if require_all:
+            raise FileNotFoundError(msg)
+        print(msg + " -> skip PCS_UQ for this seed.")
+        return None, None
     pcs_df = load_pcs_uq_predictions(pcs_path)
     base = infer_test_index_base(pcs_df, y_all)
 
@@ -1692,6 +1711,7 @@ def run_one_split(X_all, y_all, feature_names, split_seed):
         if np.sum(mask) == 0:
             continue
         y_test_g = y_test[mask]
+        X_test_g = X_test_sel[mask]
         n_g = int(len(y_test_g))
 
         for method_name, itv in all_method_intervals.items():
@@ -1712,6 +1732,16 @@ def run_one_split(X_all, y_all, feature_names, split_seed):
             width_mean = float(np.mean(width))
             width_norm_mean = float(np.mean(width / test_range))
 
+            # L1-ERT: conditional coverage metric
+            l1_ert = np.nan
+            if _HAS_COVMETRICS:
+                try:
+                    cover_bool = ((yy >= lo) & (yy <= hi)).astype(float)
+                    X_g_valid = X_test_g[valid]
+                    l1_ert = float(ERT().evaluate(X_g_valid, cover_bool, ALPHA))
+                except Exception as e:
+                    print(f"[L1-ERT] {method_name}/{gname}: {e}")
+
             all_group_results.append(
                 {
                     "seed": int(split_seed),
@@ -1720,6 +1750,7 @@ def run_one_split(X_all, y_all, feature_names, split_seed):
                     "coverage_mean": cov,
                     "width_mean": width_mean,
                     "width_norm_mean": width_norm_mean,
+                    "l1_ert": l1_ert,
                     "n_group": n_g,
                     "n_valid": int(valid.sum()),
                     "test_size": int(len(y_test)),
@@ -2067,7 +2098,8 @@ def compute_pcs_summary_only(X_all, y_all, feature_names, seeds):
             )
 
     if len(all_rows) == 0:
-        raise RuntimeError("No PCS rows computed. Check PCS_UQ_PATHS / REQUIRE_PCS_ALL_SEEDS.")
+        print("[WARN] No PCS rows computed (no PCS files found). Skipping PCS summary.")
+        return pd.DataFrame()
 
     df = pd.DataFrame(all_rows)
     summary = (
@@ -2133,7 +2165,7 @@ def main():
             temp_df = rename_methods_in_df(temp_df)
             marginal_df = temp_df[temp_df["group"] == "Marginal"]
 
-            cols = ["method", "coverage_mean", "width_norm_mean", "width_mean", "n_valid", "test_size"]
+            cols = ["method", "coverage_mean", "width_norm_mean", "width_mean", "l1_ert", "n_valid", "test_size"]
             cols = [c for c in cols if c in marginal_df.columns]
             if len(marginal_df):
                 print(marginal_df.to_string(index=False, columns=cols, float_format="%.4f"))
@@ -2142,25 +2174,32 @@ def main():
         summary_df = pd.DataFrame(all_results_list)
         summary_df = rename_methods_in_df(summary_df)
 
+        agg_dict = dict(
+            coverage_mean=("coverage_mean", "mean"),
+            coverage_std=("coverage_mean", "std"),
+            width_mean=("width_mean", "mean"),
+            width_std=("width_mean", "std"),
+            width_norm_mean=("width_norm_mean", "mean"),
+            width_norm_std=("width_norm_mean", "std"),
+            n_group_mean=("n_group", "mean"),
+            n_valid_mean=("n_valid", "mean"),
+            test_size_mean=("test_size", "mean"),
+            n_seeds=("seed", "nunique"),
+        )
+        if "l1_ert" in summary_df.columns:
+            agg_dict["l1_ert_mean"] = ("l1_ert", "mean")
+            agg_dict["l1_ert_std"] = ("l1_ert", "std")
+
         final_summary = (
             summary_df.groupby(["group", "method"])
-            .agg(
-                coverage_mean=("coverage_mean", "mean"),
-                coverage_std=("coverage_mean", "std"),
-                width_mean=("width_mean", "mean"),
-                width_std=("width_mean", "std"),
-                width_norm_mean=("width_norm_mean", "mean"),
-                width_norm_std=("width_norm_mean", "std"),
-                n_group_mean=("n_group", "mean"),
-                n_valid_mean=("n_valid", "mean"),
-                test_size_mean=("test_size", "mean"),
-                n_seeds=("seed", "nunique"),
-            )
+            .agg(**agg_dict)
             .reset_index()
         )
 
         for c in ["coverage_std", "width_std", "width_norm_std"]:
             final_summary[c] = final_summary[c].fillna(0.0)
+        if "l1_ert_std" in final_summary.columns:
+            final_summary["l1_ert_std"] = final_summary["l1_ert_std"].fillna(0.0)
 
         group_order = _infer_pc1_group_order_from_df(final_summary)
         final_summary["group"] = pd.Categorical(final_summary["group"], categories=group_order, ordered=True)

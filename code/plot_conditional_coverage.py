@@ -10,7 +10,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-DATASETS = ["Airfoil", "Computer", "Abalone", "concrete", "AutoMPG", "Crime"]
+DATASETS = ["Airfoil", "Computer", "Concrete", "AutoMPG", "Crime"]
 DISPLAY_NAMES = {"concrete": "Concrete"}
 METHODS = ["Residual", "Rescaled", "CQR", "CPI-NNCDE", "DCP-NNCDE"]
 METHOD_LABELS = ["Residual", "Rescaled", "CQR", "CPI", "DCP"]

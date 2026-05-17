@@ -42,6 +42,7 @@ from src.conformal.hazard_inference import (
     _make_coarse_time_grid,
 )
 from src.utils.helpers import set_all_seeds
+from src.utils.metrics import compute_l1_ert
 from src.utils.preprocessing import (
     fit_standardizer_xy,
     transform_X,
@@ -408,6 +409,8 @@ def run_one_split(X_all, y_all, feature_names, split_seed, config, output_dir):
         y_test_g = y_test[mask]
         n_g = len(y_test_g)
 
+        X_test_g = X_test_sel[mask]
+
         for method_name, (lo, hi) in methods.items():
             lo_g = lo[mask]
             hi_g = hi[mask]
@@ -424,6 +427,12 @@ def run_one_split(X_all, y_all, feature_names, split_seed, config, output_dir):
             width_mean = float(np.mean(hi_v - lo_v))
             width_norm_mean = float(np.mean((hi_v - lo_v) / test_range))
 
+            # L1-ERT conditional coverage metric
+            try:
+                l1_ert = compute_l1_ert(X_test_g[valid], yy, lo_v, hi_v, alpha)
+            except Exception:
+                l1_ert = float("nan")
+
             all_group_results.append({
                 "seed": int(split_seed),
                 "group": group_labels[gid],
@@ -431,6 +440,7 @@ def run_one_split(X_all, y_all, feature_names, split_seed, config, output_dir):
                 "coverage_mean": cov,
                 "width_mean": width_mean,
                 "width_norm_mean": width_norm_mean,
+                "l1_ert": l1_ert,
                 "n_group": n_g,
                 "n_valid": int(valid.sum()),
                 "test_size": len(y_test),
@@ -450,6 +460,12 @@ def run_one_split(X_all, y_all, feature_names, split_seed, config, output_dir):
         width_mean = float(np.mean(hi_v - lo_v))
         width_norm_mean = float(np.mean((hi_v - lo_v) / test_range))
 
+        # L1-ERT conditional coverage metric
+        try:
+            l1_ert = compute_l1_ert(X_test_sel[valid], yy, lo_v, hi_v, alpha)
+        except Exception:
+            l1_ert = float("nan")
+
         all_group_results.append({
             "seed": int(split_seed),
             "group": "Marginal",
@@ -457,6 +473,7 @@ def run_one_split(X_all, y_all, feature_names, split_seed, config, output_dir):
             "coverage_mean": cov,
             "width_mean": width_mean,
             "width_norm_mean": width_norm_mean,
+            "l1_ert": l1_ert,
             "n_group": len(y_test),
             "n_valid": int(valid.sum()),
             "test_size": len(y_test),
@@ -572,7 +589,8 @@ def main():
             marginal = df[df["group"] == "Marginal"]
             if len(marginal) > 0:
                 print("\nMarginal results for this seed:")
-                cols = ["method", "coverage_mean", "width_norm_mean"]
+                cols = ["method", "coverage_mean", "width_norm_mean", "l1_ert"]
+                cols = [c for c in cols if c in marginal.columns]
                 print(marginal[cols].to_string(index=False, float_format="%.4f"))
         except Exception as e:
             print(f"Error in seed {seed}: {e}")
@@ -584,38 +602,38 @@ def main():
     if len(all_results) > 0:
         summary_df = pd.DataFrame(all_results)
 
+        agg_dict = {
+            "coverage_mean": ["mean", "std"],
+            "width_mean": ["mean", "std"],
+            "width_norm_mean": ["mean", "std"],
+            "n_group": "mean",
+            "n_valid": "mean",
+            "test_size": "mean",
+            "seed": "nunique",
+        }
+        col_names = [
+            "group", "method",
+            "coverage_mean", "coverage_std",
+            "width_mean", "width_std",
+            "width_norm_mean", "width_norm_std",
+            "n_group_mean", "n_valid_mean", "test_size_mean", "n_seeds",
+        ]
+        if "l1_ert" in summary_df.columns:
+            agg_dict["l1_ert"] = ["mean", "std"]
+            col_names = col_names[:8] + ["l1_ert_mean", "l1_ert_std"] + col_names[8:]
+
         final_summary = (
             summary_df.groupby(["group", "method"])
-            .agg({
-                "coverage_mean": ["mean", "std"],
-                "width_mean": ["mean", "std"],
-                "width_norm_mean": ["mean", "std"],
-                "n_group": "mean",
-                "n_valid": "mean",
-                "test_size": "mean",
-                "seed": "nunique",
-            })
+            .agg(agg_dict)
             .reset_index()
         )
-
-        final_summary.columns = [
-            "group",
-            "method",
-            "coverage_mean",
-            "coverage_std",
-            "width_mean",
-            "width_std",
-            "width_norm_mean",
-            "width_norm_std",
-            "n_group_mean",
-            "n_valid_mean",
-            "test_size_mean",
-            "n_seeds",
-        ]
+        final_summary.columns = col_names
 
         # Fill NaN std with 0
         for col in ["coverage_std", "width_std", "width_norm_std"]:
             final_summary[col] = final_summary[col].fillna(0.0)
+        if "l1_ert_std" in final_summary.columns:
+            final_summary["l1_ert_std"] = final_summary["l1_ert_std"].fillna(0.0)
 
         out_csv = os.path.join(args.output_dir, "summary_realdata.csv")
         final_summary.to_csv(out_csv, index=False)

@@ -2,7 +2,7 @@
 # Reproduce all paper results for "Conformalized Percentile Interval"
 # Authors: AprilZou852
 # Repository: conformal-prediction
-# ICML 2025
+# 2025
 
 set -e
 
@@ -40,7 +40,7 @@ echo "=========================================="
 echo "Step 2: Real Data Experiments"
 echo "=========================================="
 
-DATASETS=("Airfoil" "Computer" "Abalone" "Concrete" "AutoMPG" "Crime")
+DATASETS=("Airfoil" "Computer" "Concrete" "AutoMPG" "Crime")
 
 for dataset in "${DATASETS[@]}"; do
     data_dir="data/${dataset}"
